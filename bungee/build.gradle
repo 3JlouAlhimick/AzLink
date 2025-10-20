@@ -1,4 +1,6 @@
 repositories {
+    maven { url = 'https://repo.md-5.net/content/repositories/releases/' } // для стабильных версий
+    maven { url = 'https://repo.md-5.net/content/repositories/snapshots/' } // для SNAPSHOT-ов, если нужно
     maven { url = 'https://oss.sonatype.org/content/repositories/snapshots/' }
     maven { url = 'https://repo.nickuc.com/maven-releases/' }
     maven { url = 'https://libraries.minecraft.net/' }
@@ -6,7 +8,7 @@ repositories {
 
 dependencies {
     implementation project(':azlink-common')
-    compileOnly 'net.md-5:bungeecord-api:1.21-R0.3'
+    compileOnly 'net.md-5:bungeecord-api:1.21-R0.4'
     compileOnly 'com.nickuc.login:nlogin-api:10.3'
     compileOnly files('libs/JPremium-API.jar')
 }
