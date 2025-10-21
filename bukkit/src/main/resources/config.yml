@@ -39,3 +39,17 @@ placeholders:
   # Use %H/%M/%S for zero-padded (e.g. 03, 12) and %h/%m/%s for non-padded (e.g. 3, 12).
   # Example: "%H:%M:%S" for "01:30:05", and "%h h %m m %s s" for "1 h 30 m 5 s".
   duration-format: "%H:%M:%S"
+
+# Optional database-backed duplicate check to avoid HTTP 422 errors during registration.
+# When enabled, AzLink will query the configured Azuriom database before attempting
+# to create a new account through the API. If a record is found the registration is skipped
+# and the player will be informed that their account already exists.
+registration-check:
+  enabled: false
+  jdbc-url: "jdbc:mysql://localhost:3306/azuriom?useSSL=false&useUnicode=true&characterEncoding=UTF-8&serverTimezone=UTC"
+  username: "azuriom"
+  password: "change_me"
+  table: "users"
+  uuid-column: "game_id"
+  username-column: "name"
+  email-column: "email"
