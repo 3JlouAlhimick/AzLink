@@ -7,6 +7,7 @@ import com.azuriom.azlink.bukkit.injector.NettyLibraryLoader;
 import com.azuriom.azlink.bukkit.integrations.*;
 import com.azuriom.azlink.bukkit.listeners.RegisterMessageListener;
 import com.azuriom.azlink.bukkit.placeholders.BasePlaceholderExpansion;
+import com.azuriom.azlink.bukkit.registration.RegistrationDuplicateChecker;
 import com.azuriom.azlink.common.AzLinkPlatform;
 import com.azuriom.azlink.common.AzLinkPlugin;
 import com.azuriom.azlink.common.command.CommandSender;
@@ -34,6 +35,7 @@ public final class AzLinkBukkitPlugin extends JavaPlugin implements AzLinkPlatfo
 
     private AzLinkPlugin plugin;
     private LoggerAdapter logger;
+    private RegistrationDuplicateChecker duplicateChecker;
 
     @Override
     public void onLoad() {
@@ -74,6 +76,8 @@ public final class AzLinkBukkitPlugin extends JavaPlugin implements AzLinkPlatfo
 
         saveDefaultConfig();
 
+        this.duplicateChecker = new RegistrationDuplicateChecker(this);
+
         this.plugin.init();
 
         getCommand("azlink").setExecutor(new BukkitCommandExecutor(this.plugin));
@@ -106,7 +110,7 @@ public final class AzLinkBukkitPlugin extends JavaPlugin implements AzLinkPlatfo
         }
 
         getServer().getMessenger().registerIncomingPluginChannel(this, "azlink:jpremium",
-                new RegisterMessageListener(plugin));
+                new RegisterMessageListener(plugin, this.duplicateChecker));
         getServer().getMessenger().registerOutgoingPluginChannel(this, "azlink:jpremium");
     }
 
