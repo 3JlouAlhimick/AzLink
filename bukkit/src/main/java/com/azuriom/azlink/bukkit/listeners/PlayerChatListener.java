@@ -1,9 +1,11 @@
 package com.azuriom.azlink.bukkit.listeners;
 
+import com.azuriom.azlink.bukkit.AzLinkBukkitPlugin;
 import com.azuriom.azlink.bukkit.BCrypt;
 import com.azuriom.azlink.bukkit.registration.RegistrationDuplicateChecker;
 import com.azuriom.azlink.common.AzLinkPlugin;
 import com.azuriom.azlink.common.integrations.BaseJPremium;
+import com.azuriom.azlink.bukkit.integrations.WebsiteHttpClient;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -14,18 +16,28 @@ import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.HandlerList;
 
+import java.net.InetAddress;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.atomic.AtomicBoolean;
+
 public class PlayerChatListener extends BaseJPremium implements Listener {
 
     private String password;
     private final String hashedPassword;
     private final Player targetPlayer;
     private final RegistrationDuplicateChecker duplicateChecker;
+    private final WebsiteHttpClient websiteClient;
+    private final AzLinkBukkitPlugin bukkitPlugin;
+    private final AtomicBoolean registrationInProgress = new AtomicBoolean(false);
 
     public PlayerChatListener(AzLinkPlugin plugin, RegistrationDuplicateChecker duplicateChecker,
+                              AzLinkBukkitPlugin bukkitPlugin, WebsiteHttpClient websiteClient,
                               Player targetPlayer, String hashedPassword) {
         super(plugin);
         this.targetPlayer = targetPlayer;
         this.duplicateChecker = duplicateChecker;
+        this.websiteClient = websiteClient;
+        this.bukkitPlugin = bukkitPlugin;
         // заменяем $2y$ на $2a$ чтобы Java могла обработать PHP-хэш
         this.hashedPassword = convertToStandardBcrypt(hashedPassword);
     }
@@ -41,6 +53,11 @@ public class PlayerChatListener extends BaseJPremium implements Listener {
 
         try {
             if (BCrypt.checkpw(message, hashedPassword)) {
+                if (this.registrationInProgress.get()) {
+                    player.sendMessage("§eРегистрация уже выполняется, пожалуйста, подождите.");
+                    return;
+                }
+
                 RegistrationDuplicateChecker.DuplicateCheckResult duplicateResult = this.duplicateChecker != null
                         ? this.duplicateChecker.check(player.getUniqueId(), player.getName(), null)
                         : RegistrationDuplicateChecker.DuplicateCheckResult.noDuplicate();
@@ -50,18 +67,72 @@ public class PlayerChatListener extends BaseJPremium implements Listener {
                     return;
                 }
 
-                setPassword(message);
-                player.sendMessage("§aВы зарегистрировались в игре и на сайте, но для игры на ванильном выживании необходимо подтвердить почту");
-                player.sendMessage("§aдля этого зайдите на сайт www.eclipsecraft.pro авторизуйтесь в свой аккаунт, в личном профиле введи почту");
-                player.sendMessage("§aа затем перейдите по ссылке в письме отправленной на ранне введенную почту");
+                this.registrationInProgress.set(true);
+                player.sendMessage("§7Выполняем регистрацию на сайте, пожалуйста, подождите...");
 
-                // Выполним регистрацию (handleRegister)
-                Bukkit.getScheduler().runTask(
-                        Bukkit.getPluginManager().getPlugin("AzLink"),
-                        () -> handleRegister(player.getUniqueId(), player.getName(), message, player.getAddress().getAddress())
-                );
+                InetAddress address = player.getAddress() != null ? player.getAddress().getAddress() : null;
+                String ip = address != null ? address.getHostAddress() : null;
 
-                unregisterListeners();
+                CompletableFuture<WebsiteHttpClient.RegistrationResult> pipeline = this.websiteClient
+                        .registerPlayer(player.getUniqueId(), player.getName(), message, null, ip)
+                        .thenCompose(result -> {
+                            if (!result.isSuccess()) {
+                                return CompletableFuture.completedFuture(result);
+                            }
+
+                            return handleRegister(player.getUniqueId(), player.getName(), message, address)
+                                    .thenApply(ignored -> result);
+                        });
+
+                pipeline.whenComplete((result, throwable) -> Bukkit.getScheduler().runTask(this.bukkitPlugin, () -> {
+                    this.registrationInProgress.set(false);
+
+                    if (!player.isOnline()) {
+                        return;
+                    }
+
+                    if (throwable != null) {
+                        Throwable cause = throwable instanceof java.util.concurrent.CompletionException
+                                && throwable.getCause() != null ? throwable.getCause() : throwable;
+                        String error = cause.getMessage() != null ? cause.getMessage() : "Неизвестная ошибка";
+                        player.sendMessage("§cПроизошла ошибка при регистрации: " + error);
+                        this.plugin.getLogger().error("Website registration failed for " + player.getName(), cause);
+                        return;
+                    }
+
+                    if (result == null) {
+                        player.sendMessage("§cНе удалось завершить регистрацию. Попробуйте снова.");
+                        return;
+                    }
+
+                    if (!result.isSuccess()) {
+                        if (result.getError() != null) {
+                            this.plugin.getLogger().error("Website registration error for " + player.getName(),
+                                    result.getError());
+                        } else {
+                            this.plugin.getLogger().warn("Website registration returned status "
+                                    + result.getStatusCode() + " for " + player.getName());
+                        }
+
+                        player.sendMessage("§c" + result.getMessage());
+                        if (result.getStatusCode() == 409 || result.getStatusCode() == 422) {
+                            player.sendMessage("§eЕсли это ваш аккаунт, авторизуйтесь на сайте или воспользуйтесь восстановлением доступа.");
+                            setPassword("duplicate");
+                            unregisterListeners();
+                        } else {
+                            player.sendMessage("§eПовторите попытку позже или обратитесь в поддержку.");
+                        }
+                        return;
+                    }
+
+                    setPassword(message);
+                    player.sendMessage("§a" + result.getMessage());
+                    player.sendMessage("§aВы зарегистрировались в игре и на сайте, но для игры на ванильном выживании необходимо подтвердить почту");
+                    player.sendMessage("§aдля этого зайдите на сайт www.eclipsecraft.pro авторизуйтесь в свой аккаунт, в личном профиле введи почту");
+                    player.sendMessage("§aа затем перейдите по ссылке в письме отправленной на ранне введенную почту");
+
+                    unregisterListeners();
+                }));
             } else {
                 player.sendMessage("§cНеверный пароль, попробуйте снова.");
             }
@@ -139,9 +210,6 @@ public class PlayerChatListener extends BaseJPremium implements Listener {
     }
 
     private void unregisterListeners() {
-        Bukkit.getScheduler().runTask(
-                Bukkit.getPluginManager().getPlugin("AzLink"),
-                () -> HandlerList.unregisterAll(this)
-        );
+        Bukkit.getScheduler().runTask(this.bukkitPlugin, () -> HandlerList.unregisterAll(this));
     }
 }

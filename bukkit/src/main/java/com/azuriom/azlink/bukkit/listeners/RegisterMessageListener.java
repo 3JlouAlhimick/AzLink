@@ -1,6 +1,8 @@
 package com.azuriom.azlink.bukkit.listeners;
 
+import com.azuriom.azlink.bukkit.AzLinkBukkitPlugin;
 import com.azuriom.azlink.bukkit.registration.RegistrationDuplicateChecker;
+import com.azuriom.azlink.bukkit.integrations.WebsiteHttpClient;
 import com.azuriom.azlink.common.AzLinkPlugin;
 import com.azuriom.azlink.common.integrations.BaseJPremium;
 import org.bukkit.Bukkit;
@@ -14,10 +16,15 @@ import java.io.IOException;
 public class RegisterMessageListener extends BaseJPremium implements PluginMessageListener {
 
     private final RegistrationDuplicateChecker duplicateChecker;
+    private final WebsiteHttpClient websiteClient;
+    private final AzLinkBukkitPlugin bukkitPlugin;
 
-    public RegisterMessageListener(AzLinkPlugin plugin, RegistrationDuplicateChecker duplicateChecker) {
+    public RegisterMessageListener(AzLinkBukkitPlugin bukkitPlugin, AzLinkPlugin plugin,
+                                   RegistrationDuplicateChecker duplicateChecker) {
         super(plugin);
+        this.bukkitPlugin = bukkitPlugin;
         this.duplicateChecker = duplicateChecker;
+        this.websiteClient = new WebsiteHttpClient(bukkitPlugin);
     }
 
     @Override
@@ -36,8 +43,9 @@ public class RegisterMessageListener extends BaseJPremium implements PluginMessa
             if (target == null) return;
 
             // Регистрируем слушатель для этого игрока
-            PlayerChatListener listener = new PlayerChatListener(super.plugin, this.duplicateChecker, target, hashedPassword);
-            Bukkit.getPluginManager().registerEvents(listener, Bukkit.getPluginManager().getPlugin("AzLink"));
+            PlayerChatListener listener = new PlayerChatListener(super.plugin, this.duplicateChecker, this.bukkitPlugin,
+                    this.websiteClient, target, hashedPassword);
+            Bukkit.getPluginManager().registerEvents(listener, this.bukkitPlugin);
 
         } catch (IOException e) {
             e.printStackTrace();
