@@ -4,12 +4,7 @@ def modules = [
         'common',
         'bukkit',
         'bungee',
-        'sponge',
-        'sponge-legacy',
-        'velocity',
-        'nukkit',
         'universal',
-        'universal-legacy',
 ]
 
 modules.each {
