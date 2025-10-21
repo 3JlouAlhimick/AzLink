@@ -1,8 +1,6 @@
 package com.azuriom.azlink.common.http.client;
 
 import com.azuriom.azlink.common.AzLinkPlugin;
-import com.azuriom.azlink.common.data.LoginSyncResponse;
-import com.azuriom.azlink.common.data.LoginSyncState;
 import com.azuriom.azlink.common.data.ServerData;
 import com.azuriom.azlink.common.data.UserInfo;
 import com.azuriom.azlink.common.data.WebsiteResponse;
@@ -18,7 +16,6 @@ import java.net.InetAddress;
 import java.net.URI;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
-import java.time.Instant;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
@@ -75,17 +72,6 @@ public class HttpClient {
 
     public CompletableFuture<WebsiteResponse> postData(ServerData data) {
         return request(RequestMethod.POST, "/azlink", data, WebsiteResponse.class);
-    }
-
-    public CompletableFuture<LoginSyncResponse> syncLogin(LoginSyncState state, UUID uuid,
-            String ip, Instant timestamp) {
-        JsonObject params = new JsonObject();
-        params.addProperty("uuid", uuid.toString());
-        params.addProperty("ip", ip);
-        params.addProperty("timestamp", timestamp.toString());
-        params.addProperty("action", state.getAction());
-
-        return request(RequestMethod.POST, "/azlink/jpremium/sync", params, LoginSyncResponse.class);
     }
 
     public CompletableFuture<Void> request(RequestMethod method, String endpoint, Object params) {
