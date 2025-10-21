@@ -4,6 +4,7 @@ import com.azuriom.azlink.common.AzLinkPlugin;
 
 import java.net.InetAddress;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
 
 public class BaseJPremium {
 
@@ -15,8 +16,8 @@ public class BaseJPremium {
         this.plugin.getLogger().info("nLogin integration enabled.");
     }
 
-    protected void handleRegister(UUID uuid, String name, String password, InetAddress address) {
-        this.plugin.getHttpClient()
+    protected CompletableFuture<Void> handleRegister(UUID uuid, String name, String password, InetAddress address) {
+        return this.plugin.getHttpClient()
                 .registerUser(name, null, uuid, password, address)
                 .exceptionally(ex -> {
                     this.plugin.getLogger().error("Unable to register " + name, ex);

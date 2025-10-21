@@ -110,7 +110,7 @@ public final class AzLinkBukkitPlugin extends JavaPlugin implements AzLinkPlatfo
         }
 
         getServer().getMessenger().registerIncomingPluginChannel(this, "azlink:jpremium",
-                new RegisterMessageListener(plugin, this.duplicateChecker));
+                new RegisterMessageListener(this, plugin, this.duplicateChecker));
         getServer().getMessenger().registerOutgoingPluginChannel(this, "azlink:jpremium");
     }
 
