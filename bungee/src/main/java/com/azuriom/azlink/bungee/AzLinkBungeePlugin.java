@@ -13,6 +13,7 @@ import com.azuriom.azlink.common.logger.LoggerAdapter;
 import com.azuriom.azlink.common.platform.PlatformInfo;
 import com.azuriom.azlink.common.platform.PlatformType;
 import com.azuriom.azlink.common.scheduler.SchedulerAdapter;
+import net.md_5.bungee.api.ProxyServer;
 import net.md_5.bungee.api.plugin.Plugin;
 import net.md_5.bungee.config.Configuration;
 import net.md_5.bungee.config.ConfigurationProvider;
@@ -58,6 +59,8 @@ public final class AzLinkBungeePlugin extends Plugin implements AzLinkPlatform {
         if (this.config.getBoolean("jpremium-integration")) {
             JPremiumIntegration.register(this);
         }
+
+        ProxyServer.getInstance().registerChannel("azlink:jpremium");
     }
 
     @Override

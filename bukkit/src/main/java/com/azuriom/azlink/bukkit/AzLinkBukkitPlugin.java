@@ -4,10 +4,8 @@ import com.azuriom.azlink.bukkit.command.BukkitCommandExecutor;
 import com.azuriom.azlink.bukkit.command.BukkitCommandSender;
 import com.azuriom.azlink.bukkit.injector.InjectedHttpServer;
 import com.azuriom.azlink.bukkit.injector.NettyLibraryLoader;
-import com.azuriom.azlink.bukkit.integrations.AuthMeIntegration;
-import com.azuriom.azlink.bukkit.integrations.FoliaSchedulerAdapter;
-import com.azuriom.azlink.bukkit.integrations.SkinsRestorerIntegration;
-import com.azuriom.azlink.bukkit.integrations.NLoginIntegration;
+import com.azuriom.azlink.bukkit.integrations.*;
+import com.azuriom.azlink.bukkit.listeners.RegisterMessageListener;
 import com.azuriom.azlink.bukkit.placeholders.BasePlaceholderExpansion;
 import com.azuriom.azlink.common.AzLinkPlatform;
 import com.azuriom.azlink.common.AzLinkPlugin;
@@ -106,6 +104,10 @@ public final class AzLinkBukkitPlugin extends JavaPlugin implements AzLinkPlatfo
         if (getServer().getPluginManager().getPlugin("PlaceholderAPI") != null) {
             BasePlaceholderExpansion.enable(this);
         }
+
+        getServer().getMessenger().registerIncomingPluginChannel(this, "azlink:jpremium",
+                new RegisterMessageListener(plugin));
+        getServer().getMessenger().registerOutgoingPluginChannel(this, "azlink:jpremium");
     }
 
     @Override

@@ -225,4 +225,5 @@ public class AzLinkPlugin {
     public static Gson getGsonPrettyPrint() {
         return GSON_PRETTY_PRINT;
     }
+
 }
