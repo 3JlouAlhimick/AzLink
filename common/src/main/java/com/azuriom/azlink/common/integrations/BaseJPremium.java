@@ -13,7 +13,7 @@ public class BaseJPremium {
     public BaseJPremium(AzLinkPlugin plugin) {
         this.plugin = plugin;
 
-        this.plugin.getLogger().info("nLogin integration enabled.");
+        this.plugin.getLogger().info("JPremium integration enabled.");
     }
 
     protected CompletableFuture<Void> handleRegister(UUID uuid, String name, String password, InetAddress address) {

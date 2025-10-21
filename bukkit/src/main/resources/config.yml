@@ -19,6 +19,11 @@ authme-integration: false
 # from registering multiple times
 nlogin-integration: false
 
+# When enabled, AzLink will synchronize player login/logout events from JPremium
+# with your website. Disable this if you do not want login checks to be performed
+# during authentication (for example, when the website is offline).
+jpremium-login-sync: true
+
 # When enabled, if SkinsRestorer is installed, and the SkinAPI plugin is present on the website,
 # the player's skin will be updated to the website's skin
 skinrestorer-integration: false
