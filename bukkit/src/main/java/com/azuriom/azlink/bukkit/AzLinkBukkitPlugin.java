@@ -5,7 +5,6 @@ import com.azuriom.azlink.bukkit.command.BukkitCommandSender;
 import com.azuriom.azlink.bukkit.injector.InjectedHttpServer;
 import com.azuriom.azlink.bukkit.injector.NettyLibraryLoader;
 import com.azuriom.azlink.bukkit.integrations.*;
-import com.azuriom.azlink.bukkit.listeners.JPremiumLoginListener;
 import com.azuriom.azlink.bukkit.listeners.RegisterMessageListener;
 import com.azuriom.azlink.bukkit.placeholders.BasePlaceholderExpansion;
 import com.azuriom.azlink.bukkit.registration.RegistrationDuplicateChecker;
@@ -104,11 +103,6 @@ public final class AzLinkBukkitPlugin extends JavaPlugin implements AzLinkPlatfo
             } catch (ClassNotFoundException e) {
                 getLogger().severe("SkinsRestorer integration requires SkinsRestorer v15.0.0 or higher");
             }
-        }
-
-        if (getConfig().getBoolean("jpremium-login-sync", true)
-                && getServer().getPluginManager().getPlugin("JPremium") != null) {
-            new JPremiumLoginListener(this).register();
         }
 
         if (getServer().getPluginManager().getPlugin("PlaceholderAPI") != null) {
