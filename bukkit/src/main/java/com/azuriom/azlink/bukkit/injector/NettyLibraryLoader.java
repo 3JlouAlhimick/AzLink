@@ -14,7 +14,7 @@ import java.nio.file.Path;
 /**
  * Since Spigot 1.19, netty-codec-http is no longer included, so we need to manually load it.
  * <p>
- * We are not including it in the plugin.yml 'libraries' list, because it's not needed for all Minecraft versions,
+ * We are not including it in the paper-plugin.yml 'libraries' list, because it's not needed for all Minecraft versions,
  * and the Netty version changes between Minecraft versions.
  */
 public class NettyLibraryLoader {

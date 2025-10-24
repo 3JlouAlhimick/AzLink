@@ -6,9 +6,11 @@ import com.azuriom.azlink.bukkit.injector.InjectedHttpServer;
 import com.azuriom.azlink.bukkit.injector.NettyLibraryLoader;
 import com.azuriom.azlink.bukkit.integrations.*;
 import com.azuriom.azlink.bukkit.listeners.RegisterMessageListener;
+import com.azuriom.azlink.bukkit.listeners.ServerJoinListener;
 import com.azuriom.azlink.bukkit.placeholders.BasePlaceholderExpansion;
 import com.azuriom.azlink.common.AzLinkPlatform;
 import com.azuriom.azlink.common.AzLinkPlugin;
+import com.azuriom.azlink.common.command.AzLinkCommand;
 import com.azuriom.azlink.common.command.CommandSender;
 import com.azuriom.azlink.common.data.WorldData;
 import com.azuriom.azlink.common.http.server.HttpServer;
@@ -19,6 +21,7 @@ import com.azuriom.azlink.common.platform.PlatformType;
 import com.azuriom.azlink.common.scheduler.JavaSchedulerAdapter;
 import com.azuriom.azlink.common.scheduler.SchedulerAdapter;
 import com.azuriom.azlink.common.tasks.TpsTask;
+import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.metadata.MetadataValue;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -76,7 +79,7 @@ public final class AzLinkBukkitPlugin extends JavaPlugin implements AzLinkPlatfo
 
         this.plugin.init();
 
-        getCommand("azlink").setExecutor(new BukkitCommandExecutor(this.plugin));
+        //getCommand("azlink").setExecutor(new BukkitCommandExecutor(this.plugin));
 
         scheduleTpsTask();
 
@@ -108,6 +111,7 @@ public final class AzLinkBukkitPlugin extends JavaPlugin implements AzLinkPlatfo
         getServer().getMessenger().registerIncomingPluginChannel(this, "azlink:jpremium",
                 new RegisterMessageListener(plugin));
         getServer().getMessenger().registerOutgoingPluginChannel(this, "azlink:jpremium");
+        Bukkit.getPluginManager().registerEvents(new ServerJoinListener(), this);
     }
 
     @Override
